@@ -1,0 +1,178 @@
+{
+  "dataset": {
+    "name": "Bank RAG Benchmark",
+    "cases_path": "data/bank_rag_cases.json",
+    "documents_path": "data/bank_rag_documents.json"
+  },
+  "top_k": 10,
+  "settings": {
+    "app_name": "EnterpriseAgent",
+    "app_env": "development",
+    "log_level": "INFO",
+    "qdrant_url": "http://localhost:6333",
+    "qdrant_api_key": null,
+    "qdrant_collection": "enterprise_knowledge",
+    "embedding_provider": "local",
+    "embedding_dimension": 384,
+    "embedding_model": "text-embedding-3-small",
+    "llm_provider": "local",
+    "llm_api_key": null,
+    "llm_base_url": "https://api.openai.com/v1",
+    "llm_model": "gpt-4.1-mini",
+    "auto_seed": true,
+    "seed_tickets": true,
+    "min_relevance": 0.1,
+    "data_dir": "/mnt/d/01workspace/项目/agent-v2/data",
+    "seed_documents_path": "/mnt/d/01workspace/项目/agent-v2/data/seed_documents.json",
+    "cors_origins": [
+      "*"
+    ]
+  },
+  "index": {
+    "documents": 100,
+    "chunks": 599,
+    "avg_chunks_per_document": 5.99,
+    "max_chunks_per_document": 8,
+    "min_chunks_per_document": 2,
+    "index_build_seconds": 0.68
+  },
+  "gold_count_distribution": {
+    "1": 52,
+    "2": 215,
+    "3": 133,
+    "4": 35,
+    "5": 10,
+    "6": 2,
+    "7": 3
+  },
+  "overall": {
+    "recall_at_5": 0.597,
+    "recall_at_10": 0.6741,
+    "mrr_at_10": 0.6541,
+    "ndcg_at_5": 0.5381,
+    "ndcg_at_10": 0.5701,
+    "precision_at_5": 0.2733,
+    "p95_ms": 0.909,
+    "mean_ms": 0.64,
+    "median_ms": 0.59,
+    "p99_ms": 1.137,
+    "cases": 450,
+    "hit_rate_at_10": 0.8822
+  },
+  "by_type": {
+    "基础事实": {
+      "recall_at_5": 0.75,
+      "recall_at_10": 0.88,
+      "mrr_at_10": 0.5267,
+      "ndcg_at_5": 0.5692,
+      "ndcg_at_10": 0.6115,
+      "precision_at_5": 0.156,
+      "p95_ms": 0.842,
+      "mean_ms": 0.604,
+      "median_ms": 0.569,
+      "p99_ms": 1.19,
+      "cases": 50,
+      "hit_rate_at_10": 0.88
+    },
+    "多跳检索": {
+      "recall_at_5": 0.5615,
+      "recall_at_10": 0.6349,
+      "mrr_at_10": 0.684,
+      "ndcg_at_5": 0.5268,
+      "ndcg_at_10": 0.5578,
+      "precision_at_5": 0.278,
+      "p95_ms": 1.06,
+      "mean_ms": 0.69,
+      "median_ms": 0.612,
+      "p99_ms": 1.206,
+      "cases": 100,
+      "hit_rate_at_10": 0.88
+    },
+    "版本更新": {
+      "recall_at_5": 0.5403,
+      "recall_at_10": 0.6087,
+      "mrr_at_10": 0.7585,
+      "ndcg_at_5": 0.556,
+      "ndcg_at_10": 0.5864,
+      "precision_at_5": 0.334,
+      "p95_ms": 0.655,
+      "mean_ms": 0.592,
+      "median_ms": 0.574,
+      "p99_ms": 0.87,
+      "cases": 100,
+      "hit_rate_at_10": 0.92
+    },
+    "相似文档": {
+      "recall_at_5": 0.7094,
+      "recall_at_10": 0.7888,
+      "mrr_at_10": 0.6914,
+      "ndcg_at_5": 0.6074,
+      "ndcg_at_10": 0.6423,
+      "precision_at_5": 0.316,
+      "p95_ms": 0.891,
+      "mean_ms": 0.642,
+      "median_ms": 0.596,
+      "p99_ms": 1.109,
+      "cases": 100,
+      "hit_rate_at_10": 0.96
+    },
+    "逻辑推理与边界": {
+      "recall_at_5": 0.5003,
+      "recall_at_10": 0.561,
+      "mrr_at_10": 0.5459,
+      "ndcg_at_5": 0.4467,
+      "ndcg_at_10": 0.4731,
+      "precision_at_5": 0.224,
+      "p95_ms": 0.912,
+      "mean_ms": 0.652,
+      "median_ms": 0.604,
+      "p99_ms": 1.004,
+      "cases": 100,
+      "hit_rate_at_10": 0.77
+    }
+  },
+  "by_difficulty": {
+    "中等": {
+      "recall_at_5": 0.6249,
+      "recall_at_10": 0.6987,
+      "mrr_at_10": 0.725,
+      "ndcg_at_5": 0.5817,
+      "ndcg_at_10": 0.6143,
+      "precision_at_5": 0.325,
+      "p95_ms": 0.857,
+      "mean_ms": 0.617,
+      "median_ms": 0.584,
+      "p99_ms": 1.031,
+      "cases": 200,
+      "hit_rate_at_10": 0.94
+    },
+    "困难": {
+      "recall_at_5": 0.5309,
+      "recall_at_10": 0.5979,
+      "mrr_at_10": 0.615,
+      "ndcg_at_5": 0.4868,
+      "ndcg_at_10": 0.5154,
+      "precision_at_5": 0.251,
+      "p95_ms": 0.953,
+      "mean_ms": 0.671,
+      "median_ms": 0.606,
+      "p99_ms": 1.166,
+      "cases": 200,
+      "hit_rate_at_10": 0.825
+    },
+    "简单": {
+      "recall_at_5": 0.75,
+      "recall_at_10": 0.88,
+      "mrr_at_10": 0.5267,
+      "ndcg_at_5": 0.5692,
+      "ndcg_at_10": 0.6115,
+      "precision_at_5": 0.156,
+      "p95_ms": 0.842,
+      "mean_ms": 0.604,
+      "median_ms": 0.569,
+      "p99_ms": 1.19,
+      "cases": 50,
+      "hit_rate_at_10": 0.88
+    }
+  }
+}

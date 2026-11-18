@@ -1,0 +1,57 @@
+name: enterprise-agent
+
+services:
+  qdrant:
+    image: qdrant/qdrant:v1.12.4
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c ':> /dev/tcp/127.0.0.1/6333'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.tuna.tsinghua.edu.cn/simple}
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_COLLECTION: ${QDRANT_COLLECTION:-enterprise_knowledge}
+      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-local}
+      EMBEDDING_DIMENSION: ${EMBEDDING_DIMENSION:-384}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-3-small}
+      LLM_PROVIDER: ${LLM_PROVIDER:-local}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_BASE_URL: ${LLM_BASE_URL:-https://api.openai.com/v1}
+      LLM_MODEL: ${LLM_MODEL:-gpt-4.1-mini}
+      AUTO_SEED: ${AUTO_SEED:-true}
+      SEED_TICKETS: ${SEED_TICKETS:-true}
+      MIN_RELEVANCE: ${MIN_RELEVANCE:-0.1}
+      RERANK_ENABLED: ${RERANK_ENABLED:-true}
+      RERANK_MODEL: ${RERANK_MODEL:-bge-reranker-base}
+      RERANK_CANDIDATES: ${RERANK_CANDIDATES:-20}
+      RERANK_MAX_LENGTH: ${RERANK_MAX_LENGTH:-512}
+      RERANK_BATCH_SIZE: ${RERANK_BATCH_SIZE:-16}
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+      DATA_DIR: /app/data
+    volumes:
+      - agent_data:/app/data
+    depends_on:
+      qdrant:
+        condition: service_healthy
+
+volumes:
+  qdrant_data:
+  agent_data:
+

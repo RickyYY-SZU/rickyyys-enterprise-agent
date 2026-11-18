@@ -1,0 +1,6 @@
+# Third-party benchmark data is not redistributed here.
+# Only the attribution docs are committed; fetch the data from upstream.
+*
+!.gitignore
+!README.md
+!LICENSE

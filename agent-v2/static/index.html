@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="EnterpriseAgent 企业知识库与工单处理智能体">
+  <title>EnterpriseAgent</title>
+  <style>
+    :root {
+      --ink: #16201e;
+      --muted: #697672;
+      --paper: #f3f1eb;
+      --panel: rgba(255, 255, 255, .82);
+      --line: rgba(22, 32, 30, .12);
+      --green: #0d6f5c;
+      --green-soft: #dcece6;
+      --amber: #b87416;
+      --red: #b8423b;
+      --shadow: 0 18px 48px rgba(35, 52, 47, .09);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% -10%, rgba(206, 229, 219, .8), transparent 34rem),
+        radial-gradient(circle at 100% 30%, rgba(237, 221, 190, .52), transparent 30rem),
+        var(--paper);
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    button, input, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .shell { width: min(1480px, calc(100% - 40px)); margin: 0 auto; padding: 26px 0 42px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .brand { display: flex; align-items: center; gap: 13px; }
+    .mark {
+      display: grid; place-items: center; width: 42px; height: 42px;
+      border-radius: 13px; color: white; background: var(--green);
+      font-weight: 800; letter-spacing: -1px; box-shadow: 0 8px 22px rgba(13, 111, 92, .25);
+    }
+    h1 { margin: 0; font-size: 22px; letter-spacing: -.6px; }
+    .subtitle { margin-top: 3px; color: var(--muted); font-size: 12px; letter-spacing: .4px; }
+    .status {
+      display: flex; align-items: center; gap: 8px; padding: 9px 13px;
+      border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.65);
+      font-size: 12px; color: var(--muted);
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--amber); }
+    .dot.online { background: #18a37d; box-shadow: 0 0 0 4px rgba(24,163,125,.12); }
+    .metrics {
+      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px;
+      margin: 24px 0 18px;
+    }
+    .metric {
+      padding: 17px 18px; border: 1px solid var(--line); border-radius: 17px;
+      background: rgba(255,255,255,.6); backdrop-filter: blur(12px);
+    }
+    .metric-label { color: var(--muted); font-size: 12px; }
+    .metric-value { margin-top: 8px; font-size: 27px; font-weight: 720; letter-spacing: -1px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(330px, .75fr); gap: 18px; }
+    .panel {
+      border: 1px solid var(--line); border-radius: 22px; background: var(--panel);
+      box-shadow: var(--shadow); backdrop-filter: blur(16px); overflow: hidden;
+    }
+    .panel-head {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 18px 20px; border-bottom: 1px solid var(--line);
+    }
+    .panel-title { font-size: 15px; font-weight: 720; }
+    .panel-note { color: var(--muted); font-size: 11px; }
+    .chat-panel { min-height: 690px; display: flex; flex-direction: column; }
+    .messages { flex: 1; overflow: auto; padding: 22px; min-height: 430px; max-height: 560px; }
+    .message { display: flex; gap: 11px; margin-bottom: 18px; animation: rise .25s ease-out; }
+    .message.user { flex-direction: row-reverse; }
+    .avatar {
+      flex: 0 0 32px; height: 32px; border-radius: 10px; display: grid; place-items: center;
+      background: var(--green-soft); color: var(--green); font-weight: 760; font-size: 12px;
+    }
+    .user .avatar { background: #ece7dc; color: #78694d; }
+    .bubble {
+      max-width: min(700px, 86%); padding: 13px 15px; border-radius: 4px 15px 15px 15px;
+      background: #fff; border: 1px solid var(--line); line-height: 1.72; font-size: 14px;
+      white-space: pre-wrap; word-break: break-word;
+    }
+    .user .bubble { background: var(--green); color: white; border-color: var(--green); border-radius: 15px 4px 15px 15px; }
+    .meta-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+    .tag {
+      padding: 4px 7px; border-radius: 7px; color: var(--green); background: var(--green-soft);
+      font-size: 10px; font-weight: 650;
+    }
+    .source {
+      display: inline-block; margin: 8px 6px 0 0; padding: 5px 8px; border-radius: 8px;
+      color: #48645d; border: 1px solid var(--line); text-decoration: none; font-size: 11px;
+      background: #fafbf9;
+    }
+    .ticket-callout {
+      margin-top: 10px; padding: 10px 12px; border-left: 3px solid var(--green);
+      background: #f1f8f5; border-radius: 0 9px 9px 0; font-size: 12px;
+    }
+    .suggestions { display: flex; flex-wrap: wrap; gap: 7px; padding: 0 20px 13px; }
+    .suggestion {
+      padding: 7px 10px; border-radius: 9px; border: 1px solid var(--line);
+      background: rgba(255,255,255,.6); color: #53605d; font-size: 11px;
+    }
+    .suggestion:hover { border-color: #98bdb1; color: var(--green); }
+    .composer { display: flex; gap: 10px; padding: 14px 16px 16px; border-top: 1px solid var(--line); }
+    .composer textarea {
+      flex: 1; min-height: 48px; max-height: 130px; resize: vertical; padding: 12px 13px;
+      border: 1px solid var(--line); border-radius: 13px; background: rgba(255,255,255,.9); outline: none;
+    }
+    .composer textarea:focus { border-color: #8cb7a9; box-shadow: 0 0 0 3px rgba(13,111,92,.08); }
+    .primary {
+      min-width: 88px; padding: 0 17px; border: 0; border-radius: 13px; color: white;
+      background: var(--green); font-weight: 680; box-shadow: 0 7px 18px rgba(13,111,92,.18);
+    }
+    .primary:disabled { opacity: .5; cursor: wait; }
+    .options { padding: 0 16px 13px; color: var(--muted); font-size: 11px; }
+    .options input { vertical-align: -2px; accent-color: var(--green); }
+    .side-stack { display: flex; flex-direction: column; gap: 18px; }
+    .tickets { max-height: 410px; overflow: auto; }
+    .ticket {
+      display: block; padding: 15px 18px; border-bottom: 1px solid var(--line);
+      text-decoration: none; color: inherit;
+    }
+    .ticket:last-child { border-bottom: 0; }
+    .ticket:hover { background: rgba(255,255,255,.7); }
+    .ticket-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .ticket-title { font-size: 13px; font-weight: 680; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ticket-no { margin-top: 5px; color: var(--muted); font-size: 10px; }
+    .pill { flex: 0 0 auto; padding: 4px 7px; border-radius: 999px; font-size: 9px; font-weight: 700; text-transform: uppercase; }
+    .pill.critical, .pill.high { color: var(--red); background: #f7e5e3; }
+    .pill.medium { color: var(--amber); background: #f8eedb; }
+    .pill.low { color: var(--green); background: var(--green-soft); }
+    .knowledge-grid { padding: 8px 18px 14px; max-height: 290px; overflow: auto; }
+    .doc { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px dashed var(--line); }
+    .doc:last-child { border-bottom: 0; }
+    .doc-name { font-size: 12px; font-weight: 630; }
+    .doc-meta { color: var(--muted); font-size: 10px; margin-top: 3px; }
+    .upload { padding: 0 18px 17px; }
+    .upload-row { display: flex; gap: 8px; }
+    .upload input { min-width: 0; flex: 1; padding: 8px; border: 1px solid var(--line); border-radius: 9px; background: #fff; font-size: 11px; }
+    .small-btn { padding: 8px 11px; border: 1px solid var(--line); border-radius: 9px; background: #fff; color: var(--green); font-size: 11px; font-weight: 650; }
+    .empty { padding: 24px 18px; color: var(--muted); font-size: 12px; text-align: center; }
+    .typing { display: inline-flex; gap: 4px; align-items: center; height: 18px; }
+    .typing i { width: 5px; height: 5px; border-radius: 50%; background: #7da69b; animation: blink 1.1s infinite; }
+    .typing i:nth-child(2) { animation-delay: .15s; }
+    .typing i:nth-child(3) { animation-delay: .3s; }
+    @keyframes blink { 50% { opacity: .22; transform: translateY(2px); } }
+    @keyframes rise { from { opacity: 0; transform: translateY(5px); } }
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .chat-panel { min-height: auto; }
+      .side-stack { display: grid; grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 680px) {
+      .shell { width: calc(100% - 22px); padding-top: 16px; }
+      .metrics { grid-template-columns: 1fr 1fr; }
+      .side-stack { grid-template-columns: 1fr; }
+      .messages { padding: 16px; }
+      .status { display: none; }
+      .composer { flex-direction: column; }
+      .primary { min-height: 44px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="brand">
+        <div class="mark">EA</div>
+        <div>
+          <h1>EnterpriseAgent</h1>
+          <div class="subtitle">KNOWLEDGE · TRIAGE · RESOLUTION</div>
+        </div>
+      </div>
+      <div class="status"><span class="dot" id="statusDot"></span><span id="statusText">正在连接服务</span></div>
+    </header>
+
+    <section class="metrics" aria-label="服务指标">
+      <div class="metric"><div class="metric-label">待处理工单</div><div class="metric-value" id="openTickets">—</div></div>
+      <div class="metric"><div class="metric-label">知识文档</div><div class="metric-value" id="docCount">—</div></div>
+      <div class="metric"><div class="metric-label">解决率</div><div class="metric-value" id="resolveRate">—</div></div>
+      <div class="metric"><div class="metric-label">超时工单</div><div class="metric-value" id="overdue">—</div></div>
+    </section>
+
+    <main class="layout">
+      <section class="panel chat-panel">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">企业服务助手</div>
+            <div class="panel-note">基于企业知识库回答，支持自动建单与 SLA 分诊</div>
+          </div>
+          <span class="tag" id="agentMode">RAG AGENT</span>
+        </div>
+        <div class="messages" id="messages" aria-live="polite">
+          <div class="message">
+            <div class="avatar">EA</div>
+            <div class="bubble">你好，我是 EnterpriseAgent。可以询问 VPN、账号、报销、请假、网络和设备流程，也可以直接描述故障，我会检索知识库并按需创建工单。</div>
+          </div>
+        </div>
+        <div class="suggestions">
+          <button class="suggestion">VPN 连不上，怎么排查？</button>
+          <button class="suggestion">差旅报销需要哪些材料？</button>
+          <button class="suggestion">打印机一直卡纸，请帮我处理</button>
+          <button class="suggestion">P1 工单的响应时间是多少？</button>
+        </div>
+        <div class="options">
+          <label><input type="checkbox" id="autoTicket" checked> 识别为支持请求时自动创建工单</label>
+        </div>
+        <form class="composer" id="chatForm">
+          <textarea id="query" rows="2" placeholder="描述你的问题，例如：VPN 无法连接，已经重启过客户端。" maxlength="4000" required></textarea>
+          <button class="primary" id="sendButton" type="submit">发送</button>
+        </form>
+      </section>
+
+      <aside class="side-stack">
+        <section class="panel">
+          <div class="panel-head">
+            <div class="panel-title">工单队列</div>
+            <div class="panel-note" id="ticketCount">加载中</div>
+          </div>
+          <div class="tickets" id="tickets"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div class="panel-title">知识库</div>
+            <div class="panel-note">Qdrant 向量索引</div>
+          </div>
+          <div class="knowledge-grid" id="documents"></div>
+          <form class="upload" id="uploadForm">
+            <div class="upload-row">
+              <input type="file" id="fileInput" accept=".txt,.md,.csv" required>
+              <button class="small-btn" type="submit">上传</button>
+            </div>
+          </form>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    const state = { busy: false };
+    const $ = (selector) => document.querySelector(selector);
+    const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[char]));
+    const statusLabels = {
+      open: "待处理", in_progress: "处理中", pending: "等待中",
+      resolved: "已解决", closed: "已关闭", reopened: "重新打开"
+    };
+
+    async function api(path, options = {}) {
+      const response = await fetch(path, options);
+      if (!response.ok) {
+        let message = `请求失败 (${response.status})`;
+        try {
+          const body = await response.json();
+          message = body.detail || message;
+        } catch (_) {}
+        throw new Error(message);
+      }
+      return response.json();
+    }
+
+    async function loadHealth() {
+      try {
+        const health = await api("/healthz");
+        $("#statusDot").classList.add("online");
+        $("#statusText").textContent = health.qdrant_ready ? "服务在线 · Qdrant 已连接" : "服务降级";
+        $("#agentMode").textContent = health.agent_mode === "llm" ? "LLM + RAG" : "LOCAL GROUNDED RAG";
+      } catch (error) {
+        $("#statusText").textContent = "服务不可用";
+      }
+    }
+
+    async function loadDashboard() {
+      try {
+        const data = await api("/api/dashboard");
+        $("#openTickets").textContent = data.open;
+        $("#docCount").textContent = data.knowledge_documents;
+        $("#resolveRate").textContent = `${Math.round(data.resolution_rate * 100)}%`;
+        $("#overdue").textContent = data.overdue;
+      } catch (_) {}
+    }
+
+    async function loadTickets() {
+      try {
+        const tickets = await api("/api/tickets?limit=6");
+        $("#ticketCount").textContent = `${tickets.length} 条最近记录`;
+        $("#tickets").innerHTML = tickets.length ? tickets.map((ticket) => `
+          <div class="ticket">
+            <div class="ticket-top">
+              <div class="ticket-title">${escapeHtml(ticket.title)}</div>
+              <span class="pill ${escapeHtml(ticket.priority)}">${escapeHtml(ticket.priority)}</span>
+            </div>
+            <div class="ticket-no">${escapeHtml(ticket.ticket_no)} · ${escapeHtml(statusLabels[ticket.status] || ticket.status)} · ${escapeHtml(ticket.category)}</div>
+          </div>
+        `).join("") : '<div class="empty">暂无工单</div>';
+      } catch (error) {
+        $("#tickets").innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+      }
+    }
+
+    async function loadDocuments() {
+      try {
+        const documents = await api("/api/documents");
+        $("#documents").innerHTML = documents.length ? documents.map((doc) => `
+          <div class="doc">
+            <div>
+              <div class="doc-name">${escapeHtml(doc.title)}</div>
+              <div class="doc-meta">${escapeHtml(doc.source)}</div>
+            </div>
+            <span class="tag">${doc.chunks} chunks</span>
+          </div>
+        `).join("") : '<div class="empty">知识库为空，请上传文档</div>';
+      } catch (error) {
+        $("#documents").innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+      }
+    }
+
+    function addUserMessage(text) {
+      $("#messages").insertAdjacentHTML("beforeend", `
+        <div class="message user"><div class="avatar">你</div><div class="bubble">${escapeHtml(text)}</div></div>
+      `);
+      $("#messages").scrollTop = $("#messages").scrollHeight;
+    }
+
+    function addAgentMessage(data) {
+      const tags = [
+        data.intent,
+        data.category,
+        `${data.priority} priority`,
+        `${data.mode} mode`
+      ].map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join("");
+      const sources = (data.sources || []).map((source) =>
+        `<span class="source" title="${escapeHtml(source.excerpt)}">[${Math.round(source.score * 100)}] ${escapeHtml(source.title)}</span>`
+      ).join("");
+      const ticket = data.ticket
+        ? `<div class="ticket-callout">已关联工单 <strong>${escapeHtml(data.ticket.ticket_no)}</strong> · ${escapeHtml(statusLabels[data.ticket.status] || data.ticket.status)}</div>`
+        : "";
+      $("#messages").insertAdjacentHTML("beforeend", `
+        <div class="message">
+          <div class="avatar">EA</div>
+          <div class="bubble">${escapeHtml(data.answer)}
+            <div class="meta-row">${tags}</div>${sources ? `<div>${sources}</div>` : ""}${ticket}
+          </div>
+        </div>
+      `);
+      $("#messages").scrollTop = $("#messages").scrollHeight;
+    }
+
+    $("#chatForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const query = $("#query").value.trim();
+      if (!query || state.busy) return;
+      state.busy = true;
+      $("#sendButton").disabled = true;
+      addUserMessage(query);
+      $("#query").value = "";
+      $("#messages").insertAdjacentHTML("beforeend", `
+        <div class="message" id="typing"><div class="avatar">EA</div><div class="bubble"><span class="typing"><i></i><i></i><i></i></span></div></div>
+      `);
+      $("#messages").scrollTop = $("#messages").scrollHeight;
+      try {
+        const data = await api("/api/chat", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({
+            query,
+            requester: "web-user",
+            auto_create_ticket: $("#autoTicket").checked
+          })
+        });
+        $("#typing")?.remove();
+        addAgentMessage(data);
+        await Promise.all([loadDashboard(), loadTickets()]);
+      } catch (error) {
+        $("#typing")?.remove();
+        addAgentMessage({
+          answer: `处理失败：${error.message}`,
+          intent: "error", category: "system",
+          priority: "low", mode: "local", sources: []
+        });
+      } finally {
+        state.busy = false;
+        $("#sendButton").disabled = false;
+        $("#query").focus();
+      }
+    });
+
+    document.querySelectorAll(".suggestion").forEach((button) => {
+      button.addEventListener("click", () => {
+        $("#query").value = button.textContent;
+        $("#query").focus();
+      });
+    });
+
+    $("#query").addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        $("#chatForm").requestSubmit();
+      }
+    });
+
+    $("#uploadForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const file = $("#fileInput").files[0];
+      if (!file) return;
+      const form = new FormData();
+      form.append("file", file);
+      form.append("tags", "upload,web");
+      const button = event.submitter;
+      button.disabled = true;
+      button.textContent = "索引中";
+      try {
+        await api("/api/documents/upload", {method: "POST", body: form});
+        $("#fileInput").value = "";
+        await Promise.all([loadDocuments(), loadDashboard()]);
+      } catch (error) {
+        alert(error.message);
+      } finally {
+        button.disabled = false;
+        button.textContent = "上传";
+      }
+    });
+
+    Promise.all([loadHealth(), loadDashboard(), loadTickets(), loadDocuments()]);
+    setInterval(loadHealth, 30000);
+  </script>
+</body>
+</html>
+
