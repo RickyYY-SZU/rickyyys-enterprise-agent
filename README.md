@@ -50,6 +50,12 @@ Retrieval evaluation uses the third-party
 here; `data/bank-rag-benchmark/README.md` documents how to fetch them and
 `data/BANK_RAG_ATTRIBUTION.md` records attribution.
 
+## Retrieval evaluation
+
+All four versions are benchmarked on the same 450-case setup. Recall, MRR, nDCG,
+precision, hit rate and latency per version, with deltas against `agent-v0`, are
+in [docs/EVALUATION_COMPARISON.md](docs/EVALUATION_COMPARISON.md).
+
 ## Notes
 
 These are MVP implementations intended for local demonstration. They are not
